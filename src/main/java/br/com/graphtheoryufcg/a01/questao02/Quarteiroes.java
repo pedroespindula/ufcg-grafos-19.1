@@ -17,31 +17,34 @@ public class Quarteiroes {
 
         Graph<String, DefaultEdge> graph = importGraphFromCSVMatrix(PATH_TO_CSV);
 
-        Set<Set<String>> result = findCityBlocks(graph);
-
-        System.out.println(result.toString());
+        System.out.println(findCityBlocks(graph));
     }
 
-    private static Set<Set<String>> findCityBlocks(Graph<String, DefaultEdge> in) {
-        Graph<String, DefaultEdge> triangleGraph = createTriangleGraph();
+    private static Set<Set<String>> findCityBlocks(Graph<String, DefaultEdge> graph) {
+        return buildBlocks(getMappings(graph, createTriangleGraph()));
+    }
 
-        VF2SubgraphIsomorphismInspector<String, DefaultEdge> isomorphismInspector =
-                new VF2SubgraphIsomorphismInspector<>(in, triangleGraph);
-
-        Iterator<GraphMapping<String, DefaultEdge>> iterator = isomorphismInspector.getMappings();
-
-        Set<Set<String>> blocks = new HashSet<Set<String>>();
+    private static Set<Set<String>> buildBlocks(Iterator<GraphMapping<String, DefaultEdge>> iterator) {
+        Set<Set<String>> blocks = new HashSet<>();
 
         while (iterator.hasNext()) {
-            GraphMapping<String, DefaultEdge> mapping = iterator.next();
-            Set<String> block = new HashSet<>();
-            block.add(mapping.getVertexCorrespondence("1", false));
-            block.add(mapping.getVertexCorrespondence("2", false));
-            block.add(mapping.getVertexCorrespondence("3", false));
-            blocks.add(block);
+            blocks.add(buildBlock(iterator.next()));
         }
-
         return blocks;
+    }
+
+    private static Iterator<GraphMapping<String, DefaultEdge>> getMappings(Graph<String, DefaultEdge> graph, Graph<String, DefaultEdge> subgraph) {
+        return new VF2SubgraphIsomorphismInspector<>(graph, subgraph).getMappings();
+    }
+
+    private static Set<String> buildBlock(GraphMapping<String, DefaultEdge> mapping) {
+        Set<String> block = new HashSet<>();
+
+        block.add(mapping.getVertexCorrespondence("1", false));
+        block.add(mapping.getVertexCorrespondence("2", false));
+        block.add(mapping.getVertexCorrespondence("3", false));
+
+        return block;
     }
 
     private static Graph<String, DefaultEdge> createTriangleGraph() {
